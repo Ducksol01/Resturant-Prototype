@@ -1,16 +1,47 @@
 
 import { motion } from "framer-motion";
-import { MapPin, Star } from "lucide-react";
+import { MapPin, Star, UtensilsCrossed } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Restaurant } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { restaurantMenus } from "@/services/data";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
   index: number;
+  searchQuery?: string;
 }
 
-const RestaurantCard = ({ restaurant, index }: RestaurantCardProps) => {
+const RestaurantCard = ({ restaurant, index, searchQuery = "" }: RestaurantCardProps) => {
+  // Get matching menu items if there's a search query
+  const matchingMenuItems = searchQuery 
+    ? getMatchingMenuItems(restaurant.id, searchQuery)
+    : [];
+
+  function getMatchingMenuItems(restaurantId: string, query: string) {
+    if (!query) return [];
+    
+    const menu = restaurantMenus[restaurantId] || [];
+    const matches = [];
+    
+    for (const category of menu) {
+      for (const item of category.items) {
+        if (
+          item.name.toLowerCase().includes(query.toLowerCase()) ||
+          item.description.toLowerCase().includes(query.toLowerCase())
+        ) {
+          matches.push({
+            ...item,
+            category: category.name
+          });
+        }
+      }
+    }
+    
+    // Limit to 3 matches for display
+    return matches.slice(0, 3);
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -48,6 +79,23 @@ const RestaurantCard = ({ restaurant, index }: RestaurantCardProps) => {
               </Badge>
             ))}
           </div>
+          
+          {matchingMenuItems.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex items-center gap-1 mb-2 text-gray-700">
+                <UtensilsCrossed className="h-3.5 w-3.5" />
+                <span className="text-xs font-medium">Matching Menu Items</span>
+              </div>
+              <ul className="space-y-1">
+                {matchingMenuItems.map((item) => (
+                  <li key={item.id} className="text-xs text-gray-600 flex justify-between">
+                    <span className="font-medium line-clamp-1">{item.name}</span>
+                    <span className="text-gray-500">${item.price.toFixed(2)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </Link>
     </motion.div>

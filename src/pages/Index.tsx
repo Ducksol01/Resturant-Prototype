@@ -3,19 +3,38 @@ import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { restaurants } from "@/services/data";
+import { restaurants, restaurantMenus } from "@/services/data";
 import RestaurantCard from "@/components/RestaurantCard";
 import Navbar from "@/components/Navbar";
+import { Restaurant } from "@/types";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   
-  const filteredRestaurants = restaurants.filter(restaurant => 
-    restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    restaurant.cuisines.some(cuisine => 
+  // Filter restaurants and menu items based on search query
+  const filteredRestaurants = restaurants.filter(restaurant => {
+    // Check if restaurant name or cuisines match search query
+    const nameMatches = restaurant.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const cuisineMatches = restaurant.cuisines.some(cuisine => 
       cuisine.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
+    );
+    
+    // Check if any menu items match search query
+    const menuMatches = searchQuery.length > 0 ? hasMatchingMenuItems(restaurant.id, searchQuery) : false;
+    
+    return nameMatches || cuisineMatches || menuMatches;
+  });
+
+  // Helper function to check if a restaurant has menu items matching the search query
+  const hasMatchingMenuItems = (restaurantId: string, query: string): boolean => {
+    const menu = restaurantMenus[restaurantId] || [];
+    return menu.some(category => 
+      category.items.some(item => 
+        item.name.toLowerCase().includes(query.toLowerCase()) || 
+        item.description.toLowerCase().includes(query.toLowerCase())
+      )
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,7 +69,7 @@ const Index = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Search restaurants or cuisines..."
+                placeholder="Search restaurants, cuisines, or dishes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-12 rounded-full border-gray-200 shadow-sm focus-visible:ring-gray-200"
@@ -61,11 +80,18 @@ const Index = () => {
         
         <section>
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-semibold mb-6">Restaurants</h2>
+            {searchQuery.length > 0 && (
+              <h2 className="text-2xl font-semibold mb-6">
+                Search results for "{searchQuery}"
+              </h2>
+            )}
+            {!searchQuery.length && (
+              <h2 className="text-2xl font-semibold mb-6">Restaurants</h2>
+            )}
             
             {filteredRestaurants.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500">No restaurants found matching your search</p>
+                <p className="text-gray-500">No restaurants or dishes found matching your search</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -74,6 +100,7 @@ const Index = () => {
                     key={restaurant.id}
                     restaurant={restaurant}
                     index={index}
+                    searchQuery={searchQuery}
                   />
                 ))}
               </div>
