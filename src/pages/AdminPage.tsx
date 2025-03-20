@@ -7,10 +7,47 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { restaurants } from "@/services/data";
 import Navbar from "@/components/Navbar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Restaurant } from "@/types";
 
 const AdminPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("restaurants");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentRestaurant, setCurrentRestaurant] = useState<Restaurant | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Restaurant>>({});
+  
+  const handleEditClick = (restaurant: Restaurant) => {
+    setCurrentRestaurant(restaurant);
+    setEditFormData({...restaurant});
+    setIsEditDialogOpen(true);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: value,
+    });
+  };
+
+  const handleCuisineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const cuisines = e.target.value.split(',').map(cuisine => cuisine.trim());
+    setEditFormData({
+      ...editFormData,
+      cuisines,
+    });
+  };
+
+  const handleSave = () => {
+    // In a real app, this would update the database
+    // Here we're just showing a success message
+    toast.success(`Restaurant "${editFormData.name}" updated successfully!`);
+    setIsEditDialogOpen(false);
+  };
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -75,7 +112,13 @@ const AdminPage = () => {
                           <td className="py-3 px-4">{restaurant.rating}</td>
                           <td className="py-3 px-4">
                             <div className="flex space-x-2">
-                              <Button variant="outline" size="sm">Edit</Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleEditClick(restaurant)}
+                              >
+                                Edit
+                              </Button>
                               <Button variant="outline" size="sm" className="text-red-500">Delete</Button>
                             </div>
                           </td>
@@ -103,6 +146,98 @@ const AdminPage = () => {
           </Tabs>
         </motion.div>
       </main>
+
+      {/* Restaurant Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Restaurant</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={editFormData.name || ''}
+                onChange={handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="image" className="text-right">
+                Image URL
+              </Label>
+              <Input
+                id="image"
+                name="image"
+                value={editFormData.image || ''}
+                onChange={handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="cuisines" className="text-right">
+                Cuisines
+              </Label>
+              <Input
+                id="cuisines"
+                name="cuisines"
+                value={editFormData.cuisines?.join(', ') || ''}
+                onChange={handleCuisineChange}
+                placeholder="Italian, Pizza, etc."
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="rating" className="text-right">
+                Rating
+              </Label>
+              <Input
+                id="rating"
+                name="rating"
+                type="number"
+                value={editFormData.rating || ''}
+                onChange={handleInputChange}
+                className="col-span-3"
+                min="0"
+                max="5"
+                step="0.1"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deliveryTime" className="text-right">
+                Delivery Time
+              </Label>
+              <Input
+                id="deliveryTime"
+                name="deliveryTime"
+                value={editFormData.deliveryTime || ''}
+                onChange={handleInputChange}
+                className="col-span-3"
+                placeholder="20-30 min"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="text-right">
+                Address
+              </Label>
+              <Input
+                id="address"
+                name="address"
+                value={editFormData.address || ''}
+                onChange={handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={handleSave}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
