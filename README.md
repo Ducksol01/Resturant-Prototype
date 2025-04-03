@@ -74,3 +74,4 @@ We don't support custom domains (yet). If you want to deploy your project under 
 # FOOD-menu
 # FOOD-menu
 # FOOD-menu
+# food-men
