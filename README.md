@@ -68,3 +68,4 @@ Simply open [Lovable](https://lovable.dev/projects/7d6e3f34-e4f6-492c-95d2-902c1
 
 We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
 # FOOD-menu
+# FOOD-menu
